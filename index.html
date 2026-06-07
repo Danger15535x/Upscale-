@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelBoost | AI-Powered Image Upscaler</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Define the image smoothing quality for better upscaling */
+        img#output-preview {
+            image-rendering: -webkit-optimize-contrast; /* Webkit / Safari */
+            image-rendering: high-quality; /* Standard */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-rose-600 text-white p-2 rounded-lg shadow-md shadow-rose-200">
+                    <i class="fa-solid fa-expand text-xl"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-rose-600 to-orange-500 bg-clip-text text-transparent">PixelBoost</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-rose-100 text-rose-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-rose-200">
+                    <i class="fa-solid fa-sparkles mr-1"></i> Smart Upscaling
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-12">
+        
+        <section class="text-center max-w-2xl mx-auto mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+                Boost Resolution <span class="text-rose-600">Up to 4x</span>
+            </h1>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                Enlarge small or low-resolution images instantly using smart upscaling technology. Recover fine details lost in compression, perfect for old photos and small product images.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-xl shadow-slate-100 border border-slate-100 p-6 md:p-8 mb-16">
+            
+            <div id="drop-zone" class="border-2 border-dashed border-slate-300 hover:border-rose-500 rounded-xl p-12 text-center cursor-pointer bg-slate-50 hover:bg-rose-50/30 transition-all group">
+                <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" class="hidden">
+                <div class="text-rose-500 group-hover:scale-110 transition-transform duration-300 text-5xl mb-4">
+                    <i class="fa-solid fa-images"></i>
+                </div>
+                <p class="text-lg font-semibold text-slate-700 mb-1">Drag & drop your low-res image here</p>
+                <p class="text-sm text-slate-500 mb-4">or click to browse local files</p>
+                <span class="inline-block bg-white border border-slate-200 text-slate-600 font-medium text-xs px-3 py-1.5 rounded-full shadow-sm">
+                    Supports JPEG, PNG, WebP
+                </span>
+            </div>
+
+            <div id="output-workspace" class="hidden space-y-8">
+                
+                <div class="bg-slate-50 border border-slate-200 p-6 rounded-xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <label for="upscale-range" class="font-bold text-lg text-slate-800">Upscale Factor</label>
+                        <span id="upscale-factor" class="bg-rose-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow">2x</span>
+                    </div>
+                    <input type="range" id="upscale-range" min="1" max="4" step="1" value="2" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600">
+                    <div class="flex justify-between text-xs text-slate-500 font-medium pt-1">
+                        <span>Original (1x)</span>
+                        <span>2x Boost</span>
+                        <span>3x Boost</span>
+                        <span>Max (4x)</span>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Original (1x)</p>
+                            <p id="original-res" class="text-xs font-mono text-slate-500">-</p>
+                        </div>
+                        <div class="h-80 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-slate-100 p-2">
+                            <img id="input-preview" class="max-h-full max-w-full object-contain" src="" alt="Source low-res thumbnail">
+                        </div>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 relative">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <p class="text-xs font-bold uppercase tracking-wider text-rose-500">Boosted Output</p>
+                            <p id="boosted-res" class="text-xs font-mono text-slate-500">-</p>
+                        </div>
+                        <div class="h-80 flex items-center justify-center overflow-hidden rounded-lg bg-white border border-slate-100 p-2 relative group">
+                            <img id="output-preview" class="max-h-full max-w-full object-contain" src="" alt="Upscaled preview">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 backdrop-blur-sm rounded-lg">
+                                <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full border border-white/30"><i class="fa-solid fa-magnifying-glass mr-1.5"></i> Detail Recovered</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-3 pt-6 border-t border-slate-100">
+                    <button id="download-btn" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3.5 px-8 rounded-xl shadow-lg shadow-rose-100 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-file-arrow-down"></i> Download Boosted Image
+                    </button>
+                    <button id="restart-btn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-medium py-3.5 px-6 rounded-xl transition cursor-pointer">
+                        Upscale Another Image
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="border-t border-slate-200 py-12">
+            <h2 class="text-2xl font-bold text-slate-900 text-center mb-10">Restore and Enhance Assets</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-xs">
+                    <div class="text-rose-600 text-xl mb-3"><i class="fa-solid fa-camera-retro"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">Old Photos</h3>
+                    <p class="text-sm text-slate-600">Breathe new life into low-quality, compressed vintage scans or early digital camera snapshots.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-xs">
+                    <div class="text-rose-600 text-xl mb-3"><i class="fa-solid fa-tag"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">Small Product Images</h3>
+                    <p class="text-sm text-slate-600">Upgrade small thumbnails to larger high-res displays suitable for modern e-commerce storefronts.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-xs">
+                    <div class="text-rose-600 text-xl mb-3"><i class="fa-solid fa-paint-brush"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">Graphic Designs</h3>
+                    <p class="text-sm text-slate-600">Cleanly scale up low-resolution icons, logos, or digital art assets for print or high-DPI screens.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 text-sm py-8 border-t border-slate-800 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p>&copy; 2026 PixelBoost Studio. Performance dependent on browser runtime configurations.</p>
+        </div>
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const outputWorkspace = document.getElementById('output-workspace');
+        
+        const inputPreview = document.getElementById('input-preview');
+        const outputPreview = document.getElementById('output-preview');
+        const upscaleRange = document.getElementById('upscale-range');
+        const upscaleFactorDisplay = document.getElementById('upscale-factor');
+        
+        const originalResDisplay = document.getElementById('original-res');
+        const boostedResDisplay = document.getElementById('boosted-res');
+        
+        const downloadBtn = document.getElementById('download-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let sourceImage = null;
+        let activeFileName = "boosted_image";
+        let activeFileType = "image/png";
+
+        // Click target router paths
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag behaviors
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-rose-500', 'bg-rose-50/50');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-rose-500', 'bg-rose-50/50');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-rose-500', 'bg-rose-50/50');
+            if(e.dataTransfer.files.length > 0) {
+                handleFileSelection(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+
+        upscaleRange.addEventListener('input', (e) => {
+            const factor = e.target.value;
+            upscaleFactorDisplay.textContent = factor + 'x';
+            if (sourceImage) {
+                processUpscale(factor);
+            }
+        });
+
+        function handleFileSelection(file) {
+            if (!file.type.match('image.*')) {
+                alert('Please provide a valid image file (JPG, PNG, WEBP).');
+                return;
+            }
+
+            activeFileName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            activeFileType = file.type;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                sourceImage = new Image();
+                sourceImage.onload = () => {
+                    inputPreview.src = sourceImage.src;
+                    originalResDisplay.textContent = `${sourceImage.naturalWidth} x ${sourceImage.naturalHeight}px`;
+                    
+                    // Transition Views
+                    dropZone.classList.add('hidden');
+                    outputWorkspace.classList.remove('hidden');
+                    
+                    // Trigger first upscale
+                    processUpscale(upscaleRange.value);
+                };
+                sourceImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processUpscale(factor) {
+            const targetWidth = sourceImage.naturalWidth * factor;
+            const targetHeight = sourceImage.naturalHeight * factor;
+            
+            boostedResDisplay.textContent = `${Math.round(targetWidth)} x ${Math.round(targetHeight)}px`;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Apply smooth scaling configuration
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Draw upscaled version
+            ctx.drawImage(sourceImage, 0, 0, targetWidth, targetHeight);
+
+            // Convert back to image for preview/download
+            outputPreview.src = canvas.toDataURL(activeFileType, 0.95);
+        }
+
+        // Action Buttons Wiring
+        downloadBtn.addEventListener('click', () => {
+            if(!outputPreview.src) return;
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = outputPreview.src;
+            downloadAnchor.download = `${activeFileName}_${upscaleRange.value}x.${activeFileType.split('/')[1]}`;
+            downloadAnchor.click();
+        });
+
+        restartBtn.addEventListener('click', resetWorkspaceState);
+
+        function resetWorkspaceState() {
+            fileInput.value = '';
+            outputWorkspace.classList.add('hidden');
+            dropZone.classList.remove('hidden');
+            sourceImage = null;
+            inputPreview.src = '';
+            outputPreview.src = '';
+            upscaleRange.value = 2; // Reset slider to default
+            upscaleFactorDisplay.textContent = '2x';
+        }
+    </script>
+</body>
+</html>
